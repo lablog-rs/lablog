@@ -1,0 +1,6 @@
+[workspace]
+members = [
+  "lib/store",
+  "lib/store_csv",
+  "bin/lablog",
+]
