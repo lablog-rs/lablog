@@ -11,7 +11,7 @@ extern crate serde;
 use chrono::prelude::*;
 use std::collections::BTreeSet as DataSet;
 
-pub mod lablog_store_errors {
+pub mod errors {
     error_chain!{
         errors {
           ProjectAlreadyArchived(project: String) {
@@ -22,11 +22,13 @@ pub mod lablog_store_errors {
             description("no project with this name")
             display("no project with the name '{}' found", project)
           }
+          NoteHasEmptyValue {
+            description("not has empty value")
+            display("note has empty value")
+          }
         }
     }
 }
-
-use lablog_store_errors as errors;
 
 pub trait Store {
     fn archive_project(&self, &ProjectName) -> Result<(), errors::Error>;
@@ -36,15 +38,40 @@ pub trait Store {
     fn write_note(&self, &ProjectName, &Note) -> Result<(), errors::Error>;
 }
 
-#[derive(Debug,Serialize,Deserialize)]
+#[derive(Debug, Serialize,Deserialize,Ord,PartialOrd,Eq,PartialEq)]
 pub struct Note {
-    pub time_stamp: DateTime<UTC>,
+    pub time_stamp: DateTime<Utc>,
     pub value: String,
 }
 
 pub type Notes = DataSet<Note>;
 
-pub type ProjectName = String;
+pub struct ProjectName(String);
+
+const PROJECT_SEPPERATOR: &'static str = ".";
+
+impl ProjectName {
+    pub fn normalize_path(&self) -> String {
+        self.0.replace(PROJECT_SEPPERATOR, "/")
+    }
+
+    pub fn new(name: String) -> ProjectName {
+        ProjectName(name)
+    }
+}
+
+#[cfg(test)]
+mod test_lablog_store_projectname {
+    use ProjectName;
+
+    #[test]
+    fn normalize_path() {
+        let expected = "/test/test/test";
+        let got = ProjectName(".test.test.test".to_string()).normalize_path();
+
+        assert_eq!(expected, got)
+    }
+}
 
 pub struct Project {
     pub name: ProjectName,
