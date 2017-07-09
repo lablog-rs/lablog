@@ -35,10 +35,11 @@ pub trait Store {
     fn get_notes(&self, &ProjectName) -> Result<Notes, errors::Error>;
     fn get_project(&self, &ProjectName) -> Result<Project, errors::Error>;
     fn get_projects(&self) -> Result<Projects, errors::Error>;
+    fn get_projects_list(&self) -> Result<DataSet<ProjectName>, errors::Error>;
     fn write_note(&self, &ProjectName, &Note) -> Result<(), errors::Error>;
 }
 
-#[derive(Debug, Serialize,Deserialize,Ord,PartialOrd,Eq,PartialEq)]
+#[derive(Debug, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Note {
     pub time_stamp: DateTime<Utc>,
     pub value: String,
@@ -46,9 +47,10 @@ pub struct Note {
 
 pub type Notes = DataSet<Note>;
 
+#[derive(Debug, Ord, PartialOrd, Eq, PartialEq)]
 pub struct ProjectName(String);
 
-const PROJECT_SEPPERATOR: &'static str = ".";
+pub const PROJECT_SEPPERATOR: &'static str = ".";
 
 impl ProjectName {
     pub fn normalize_path(&self) -> String {
