@@ -9,7 +9,7 @@ extern crate serde_derive;
 extern crate serde;
 
 use chrono::prelude::*;
-use std::collections::BTreeSet as DataSet;
+use std::collections::BTreeSet;
 
 pub mod errors {
     error_chain!{
@@ -31,34 +31,49 @@ pub mod errors {
 }
 
 pub trait Store {
+    /// Archive the given project.
     fn archive_project(&self, &ProjectName) -> Result<(), errors::Error>;
-    fn get_notes(&self, &ProjectName) -> Result<Notes, errors::Error>;
-    fn get_project(&self, &ProjectName) -> Result<Project, errors::Error>;
+    /// Gets a single project with its notes from the store. If archived is
+    /// true the store will try
+    /// to fetch the project from the archive.
+    fn get_project(&self, ProjectName, bool) -> Result<Project, errors::Error>;
+    /// Gets all projects and their notes from the store.
     fn get_projects(&self) -> Result<Projects, errors::Error>;
-    fn get_projects_list(&self) -> Result<DataSet<ProjectName>, errors::Error>;
+    /// Gets a list of the names of all projects from the store.
+    fn get_projects_list(&self) -> Result<BTreeSet<ProjectName>, errors::Error>;
+    /// Write a note for a project to the store.
     fn write_note(&self, &ProjectName, &Note) -> Result<(), errors::Error>;
 }
 
-#[derive(Debug, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Note {
     pub time_stamp: DateTime<Utc>,
     pub value: String,
 }
 
-pub type Notes = DataSet<Note>;
+pub type Notes = BTreeSet<Note>;
 
-#[derive(Debug, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Debug, Ord, PartialOrd, Eq, PartialEq, Clone)]
 pub struct ProjectName(String);
 
 pub const PROJECT_SEPPERATOR: &'static str = ".";
 
 impl ProjectName {
+    /// generates a unix path out of the project name
     pub fn normalize_path(&self) -> String {
         self.0.replace(PROJECT_SEPPERATOR, "/")
     }
+}
 
-    pub fn new(name: String) -> ProjectName {
-        ProjectName(name)
+impl From<String> for ProjectName {
+    fn from(string: String) -> Self {
+        ProjectName(string)
+    }
+}
+
+impl<'a> From<&'a str> for ProjectName {
+    fn from(string: &'a str) -> Self {
+        ProjectName(string.into())
     }
 }
 
@@ -75,10 +90,11 @@ mod test_lablog_store_projectname {
     }
 }
 
+#[derive(Debug, Ord, PartialOrd, Eq, PartialEq)]
 pub struct Project {
     pub name: ProjectName,
     pub archived: bool,
     pub notes: Notes,
 }
 
-pub type Projects = DataSet<Project>;
+pub type Projects = BTreeSet<Project>;
