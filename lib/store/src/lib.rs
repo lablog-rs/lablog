@@ -67,7 +67,7 @@ pub struct ProjectName(String);
 
 impl std::fmt::Display for ProjectName {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self)
+        write!(f, "{}", self.0)
     }
 }
 
@@ -96,7 +96,7 @@ impl std::str::FromStr for ProjectName {
     type Err = String;
 
     fn from_str(string: &str) -> Result<Self, Self::Err> {
-        Ok(ProjectName(string.into()))
+        Ok(string.into())
     }
 }
 

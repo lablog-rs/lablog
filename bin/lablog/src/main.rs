@@ -76,14 +76,18 @@ fn run() -> Result<()> {
 
 fn run_projects(options: Options) -> Result<()> {
     let store = CSVStore::new(options.datadir);
+
     let projects = store.get_projects().chain_err(
         || "can not get projects from store",
     )?;
+
+    trace!("projects: {:#?}", projects);
 
     for project in projects {
         if project.archived {
             continue;
         }
+
         println!("{}", project);
     }
 
