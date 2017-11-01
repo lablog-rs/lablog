@@ -24,7 +24,7 @@ pub struct CSVStore {
 
 impl CSVStore {
     #[allow(dead_code)]
-    fn new(data_dir: PathBuf) -> CSVStore {
+    pub fn new(data_dir: PathBuf) -> CSVStore {
         CSVStore { data_dir: data_dir }
     }
 

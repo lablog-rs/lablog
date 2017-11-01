@@ -1,0 +1,73 @@
+name: "salt-compressor"
+author: "Alexander Thaller <alexander@thaller.ws>"
+about: "Compress the output of saltstack-runs to make it easier to review changes that happen to a lot of servers."
+settings:
+  - "SubcommandRequiredElseHelp"
+global_settings:
+  - "ColoredHelp"
+  - "GlobalVersion"
+  - "NextLineHelp"
+  - "VersionlessSubcommands"
+args:
+    - loglevel:
+        default_value: "info"
+        global: true
+        help: "Loglevel to run under"
+        long: "loglevel"
+        possible_values: [ "trace", "debug", "info", "warn", "error" ]
+        short: "l"
+        takes_value: true
+        value_name: "level"
+    - datadir:
+        default_value: "$XDG_DATA_HOME/lablog"
+        global: true
+        help: "path to the lablog data dir"
+        long: "datadir"
+        short: "D"
+        takes_value: true
+        value_name: "path"
+subcommands:
+  - projects:
+      about: "list all projects with notes in labloglist all projects"
+  - note:
+      about: "add a note to lablog"
+      settings:
+        - "SubcommandRequiredElseHelp"
+      subcommands:
+        - text:
+            about: "input the note text directly in the cli"
+            args:
+              - project:
+                  help: "project to which to add the note to"
+                  index: 1
+                  required: true
+                  takes_value: true
+                  value_name: "project"
+              - text:
+                  help: "text for the note"
+                  index: 2
+                  takes_value: true
+                  value_name: "text"
+        - file:
+            about: "read the note from the given file"
+            args:
+              - project:
+                  help: "project to which to add the note to"
+                  index: 1
+                  required: true
+                  takes_value: true
+                  value_name: "project"
+              - file:
+                  help: "file from which to read from"
+                  index: 2
+                  takes_value: true
+                  value_name: "filepath"
+        - editor:
+            about: "launch the editor defined by $EDITOR to write the note"
+            args:
+              - project:
+                  help: "project to which to add the note to"
+                  index: 1
+                  required: true
+                  takes_value: true
+                  value_name: "project"

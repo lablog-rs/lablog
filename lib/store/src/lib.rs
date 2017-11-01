@@ -56,6 +56,12 @@ pub type Notes = BTreeSet<Note>;
 #[derive(Debug, Ord, PartialOrd, Eq, PartialEq, Clone)]
 pub struct ProjectName(String);
 
+impl std::fmt::Display for ProjectName {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self)
+    }
+}
+
 pub const PROJECT_SEPPERATOR: &'static str = ".";
 
 impl ProjectName {
@@ -95,6 +101,12 @@ pub struct Project {
     pub name: ProjectName,
     pub archived: bool,
     pub notes: Notes,
+}
+
+impl std::fmt::Display for Project {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.name)
+    }
 }
 
 pub type Projects = BTreeSet<Project>;
