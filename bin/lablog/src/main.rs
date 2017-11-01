@@ -17,11 +17,13 @@ extern crate tempdir;
 
 mod helper;
 mod options;
+mod formatter;
 
 use clap::App;
 use clap::ArgMatches;
 use log::LogLevel;
 use options::Options;
+use std::io;
 use store::ProjectName;
 use store::Store;
 use store::errors::*;
@@ -66,6 +68,10 @@ fn run() -> Result<()> {
         Some("projects") => {
             run_projects(options).chain_err(|| "problem while running projects subcommand")
         }
+        Some("notes") => {
+            run_notes(matches.subcommand_matches("notes").unwrap(), options)
+                .chain_err(|| "problem while running notes subcommand")
+        }
         Some("note") => {
             run_note(matches.subcommand_matches("note").unwrap(), options)
                 .chain_err(|| "problem while running note subcommand")
@@ -83,12 +89,40 @@ fn run_projects(options: Options) -> Result<()> {
 
     trace!("projects: {:#?}", projects);
 
+    let stdout = io::stdout();
+    let mut handle = stdout.lock();
+
     for project in projects {
         if project.archived {
             continue;
         }
 
-        println!("{}", project);
+        formatter::format_project_name(&mut handle, project.name);
+    }
+
+    Ok(())
+}
+
+fn run_notes(_matches: &ArgMatches, options: Options) -> Result<()> {
+    let store = CSVStore::new(options.datadir);
+
+    let projects = store.get_projects().chain_err(
+        || "can not get projects from store",
+    )?;
+
+    let stdout = io::stdout();
+    let mut handle = stdout.lock();
+
+    for project in projects {
+        if project.archived {
+            continue;
+        }
+
+        formatter::format_project_name(&mut handle, project.name);
+
+        for note in project.notes {
+            formatter::format_note(&mut handle, note)
+        }
     }
 
     Ok(())
