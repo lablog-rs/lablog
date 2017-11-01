@@ -1,10 +1,13 @@
 [package]
+authors = ["Alexander Thaller <alexander.thaller@trivago.com>"]
 name = "lablog_store"
 version = "0.1.0"
-authors = ["Alexander Thaller <alexander.thaller@trivago.com>"]
 
 [dependencies]
-chrono = { version = "0.4", features = ["serde"] }
-error-chain = "0.10"
-serde_derive = "1"
-serde = "1"
+error-chain = "0.11.0"
+serde = "1.0.17"
+serde_derive = "1.0.17"
+
+[dependencies.chrono]
+features = ["serde"]
+version = "0.4.0"
