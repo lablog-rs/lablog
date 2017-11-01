@@ -18,6 +18,7 @@ args:
         short: "l"
         takes_value: true
         value_name: "level"
+        env: "LABLOG_LOGLEVEL"
     - datadir:
         default_value: "$XDG_DATA_HOME/lablog"
         global: true
@@ -26,6 +27,7 @@ args:
         short: "D"
         takes_value: true
         value_name: "path"
+        env: "LABLOG_DATADIR"
 subcommands:
   - projects:
       about: "list all projects with notes in labloglist all projects"
