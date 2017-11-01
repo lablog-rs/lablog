@@ -3,6 +3,9 @@ extern crate log;
 extern crate loggerv;
 
 #[macro_use]
+extern crate error_chain;
+
+#[macro_use]
 extern crate clap;
 
 extern crate xdg;
@@ -10,14 +13,19 @@ extern crate xdg;
 extern crate lablog_store as store;
 extern crate lablog_store_csv as store_csv;
 
+extern crate tempdir;
+
+mod helper;
+mod options;
+
 use clap::App;
 use clap::ArgMatches;
 use log::LogLevel;
-use std::path::PathBuf;
+use options::Options;
+use store::ProjectName;
 use store::Store;
 use store::errors::*;
 use store_csv::*;
-use xdg::BaseDirectories;
 
 fn main() {
     if let Err(e) = run() {
@@ -59,7 +67,7 @@ fn run() -> Result<()> {
             run_projects(options).chain_err(|| "problem while running projects subcommand")
         }
         Some("note") => {
-            run_note(matches.subcommand_matches("note").unwrap())
+            run_note(matches.subcommand_matches("note").unwrap(), options)
                 .chain_err(|| "problem while running note subcommand")
         }
         _ => unreachable!(),
@@ -82,43 +90,37 @@ fn run_projects(options: Options) -> Result<()> {
     Ok(())
 }
 
-fn run_note(matches: &ArgMatches) -> Result<()> {
-    trace!("run_note matches: {:#?}", matches);
-    println!("loglevel: {:#?}", matches.value_of("loglevel"));
-
+fn run_note(matches: &ArgMatches, options: Options) -> Result<()> {
     match matches.subcommand_name() {
-        Some("editor") => unimplemented!(),
-        Some("file") => unimplemented!(),
-        Some("text") => unimplemented!(),
+        Some("editor") => {
+            // TODO: find out if we can move the project to a global arg of the subcommand,
+            // had problems with clap complaining that it would clash with the loglevel
+            // argument or something
+            let submatches = matches.subcommand_matches("editor").unwrap();
+            trace!("editor submatches: {:#?}", submatches);
+
+            let project_name = value_t!(submatches, "project", store::ProjectName)
+                .chain_err(|| "can not get project name to write note to")?;
+            trace!("project_name: {:#?}", project_name);
+
+            run_note_editor(options, &project_name).chain_err(
+                || "problem while running editor subcommand",
+            )
+        }
+        Some("file") => bail!("unimplemented"),
+        Some("text") => bail!("unimplemented"),
         _ => unreachable!(),
     }
 }
 
-#[derive(Debug)]
-struct Options {
-    datadir: PathBuf,
-}
+fn run_note_editor(options: Options, project_name: &ProjectName) -> Result<()> {
+    let store = CSVStore::new(options.datadir);
 
-impl Options {
-    fn try_from(matches: &ArgMatches) -> Result<Self> {
-        let datadir = match matches.value_of("datadir").unwrap() {
-            "$XDG_DATA_HOME/lablog" => {
-                let xdg = BaseDirectories::new().chain_err(
-                    || "can not get xdg base directory",
-                )?;
+    let note = helper::string_from_editor(None).chain_err(
+        || "can not get note from running the editor",
+    )?;
 
-                xdg.create_data_directory("lablog").chain_err(
-                    || "can not create xdg base directory",
-                )?
-            }
-            _ => {
-                PathBuf::from(matches.value_of("datadir").ok_or(
-                    "can not parse datadir from args",
-                )?)
-            }
-        };
-
-        let options = Options { datadir: datadir };
-        Ok(options)
-    }
+    store.write_note(project_name, &note.into()).chain_err(
+        || "can not write note into store",
+    )
 }

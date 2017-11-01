@@ -51,6 +51,15 @@ pub struct Note {
     pub value: String,
 }
 
+impl From<String> for Note {
+    fn from(input: String) -> Self {
+        Note {
+            value: input,
+            time_stamp: Utc::now(),
+        }
+    }
+}
+
 pub type Notes = BTreeSet<Note>;
 
 #[derive(Debug, Ord, PartialOrd, Eq, PartialEq, Clone)]
@@ -80,6 +89,14 @@ impl From<String> for ProjectName {
 impl<'a> From<&'a str> for ProjectName {
     fn from(string: &'a str) -> Self {
         ProjectName(string.into())
+    }
+}
+
+impl std::str::FromStr for ProjectName {
+    type Err = String;
+
+    fn from_str(string: &str) -> Result<Self, Self::Err> {
+        Ok(ProjectName(string.into()))
     }
 }
 

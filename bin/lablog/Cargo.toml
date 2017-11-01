@@ -4,8 +4,10 @@ name = "lablog"
 version = "0.1.0"
 
 [dependencies]
+error-chain = "0.11.0"
 log = "0.3.8"
 loggerv = "0.4.0"
+tempdir = "0.3.5"
 xdg = "2.1.0"
 
 [dependencies.clap]
