@@ -20,3 +20,7 @@ path = "../../lib/store"
 
 [dependencies.lablog_store_csv]
 path = "../../lib/store_csv"
+
+[dev-dependencies]
+chrono = "0.4.0"
+pretty_assertions = "0.4.0"

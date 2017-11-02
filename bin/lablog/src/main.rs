@@ -17,19 +17,31 @@ extern crate tempdir;
 
 extern crate regex;
 
+#[cfg(test)]
+extern crate chrono;
+#[cfg(test)]
+#[macro_use]
+extern crate pretty_assertions;
+
 mod errors;
 mod formatter;
 mod helper;
 mod options;
 
+#[cfg(test)]
+mod formatter_test;
+
 use clap::App;
 use clap::ArgMatches;
 use errors::*;
+use formatter::*;
 use options::Options;
 use regex::Regex;
 use std::io;
-use store::ProjectName;
-use store::Store;
+use std::io::Write;
+use store::project::Projects;
+use store::project_name::ProjectName;
+use store::store::Store;
 use store_csv::*;
 
 fn main() {
@@ -95,7 +107,7 @@ fn run_projects(options: Options) -> Result<()> {
             continue;
         }
 
-        formatter::format_project_name(&mut handle, &project.name)
+        writeln!(handle, "{}", format_project_name(&project.name))
             .chain_err(|| "can not format project name")?;
     }
 
@@ -117,7 +129,7 @@ fn run_notes(matches: &ArgMatches, options: Options) -> Result<()> {
         || "can not create regex out of filter argument",
     )?;
 
-    let projects: store::Projects = projects
+    let projects: Projects = projects
         .into_iter()
         .filter(|project| regex.is_match((&project.name).into()))
         .collect();
@@ -130,11 +142,11 @@ fn run_notes(matches: &ArgMatches, options: Options) -> Result<()> {
             continue;
         }
 
-        formatter::format_project_name(&mut handle, &project.name)
+        writeln!(handle, "{}", format_project_name(&project.name))
             .chain_err(|| "can not format project name")?;
 
         for note in project.notes {
-            formatter::format_note(&mut handle, &note).chain_err(
+            writeln!(handle, "{}", format_note(&note)).chain_err(
                 || "can not format note",
             )?
         }
@@ -152,8 +164,9 @@ fn run_note(matches: &ArgMatches, options: Options) -> Result<()> {
             let submatches = matches.subcommand_matches("editor").unwrap();
             trace!("editor submatches: {:#?}", submatches);
 
-            let project_name = value_t!(submatches, "project", store::ProjectName)
-                .chain_err(|| "can not get project name to write note to")?;
+            let project_name = value_t!(submatches, "project", ProjectName).chain_err(
+                || "can not get project name to write note to",
+            )?;
             trace!("project_name: {:#?}", project_name);
 
             run_note_editor(options, &project_name).chain_err(
