@@ -1,0 +1,31 @@
+name: "converter"
+author: "Alexander Thaller <alexander@thaller.ws>"
+about: "Convert lablog repositoy version from one to another."
+global_settings:
+  - "ColoredHelp"
+  - "GlobalVersion"
+  - "NextLineHelp"
+args:
+    - loglevel:
+        default_value: "info"
+        global: true
+        help: "Loglevel to run under"
+        long: "loglevel"
+        possible_values: [ "trace", "debug", "info", "warn", "error" ]
+        short: "l"
+        takes_value: true
+        value_name: "level"
+    - source_dir:
+        help: "Source dir to convert from"
+        long: "source_dir"
+        required: true
+        short: "S"
+        takes_value: true
+        value_name: "path"
+    - destination_dir:
+        help: "Destination dir to convert to"
+        long: "destination_dir"
+        required: true
+        short: "D"
+        takes_value: true
+        value_name: "path"

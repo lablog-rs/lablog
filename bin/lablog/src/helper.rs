@@ -1,9 +1,9 @@
+use errors::*;
 use std::env;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
 use std::process::Command;
-use store::errors::*;
 use tempdir::TempDir;
 
 pub fn string_from_editor(prepoluate: Option<&str>) -> Result<String> {

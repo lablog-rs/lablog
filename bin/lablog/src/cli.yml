@@ -1,6 +1,6 @@
-name: "salt-compressor"
+name: "lablog"
 author: "Alexander Thaller <alexander@thaller.ws>"
-about: "Compress the output of saltstack-runs to make it easier to review changes that happen to a lot of servers."
+about: "Take and retreive notes organized by projects."
 settings:
   - "SubcommandRequiredElseHelp"
 global_settings:

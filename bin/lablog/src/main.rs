@@ -17,18 +17,19 @@ extern crate tempdir;
 
 extern crate regex;
 
+mod errors;
+mod formatter;
 mod helper;
 mod options;
-mod formatter;
 
 use clap::App;
 use clap::ArgMatches;
+use errors::*;
 use options::Options;
 use regex::Regex;
 use std::io;
 use store::ProjectName;
 use store::Store;
-use store::errors::*;
 use store_csv::*;
 
 fn main() {
@@ -94,7 +95,8 @@ fn run_projects(options: Options) -> Result<()> {
             continue;
         }
 
-        formatter::format_project_name(&mut handle, &project.name);
+        formatter::format_project_name(&mut handle, &project.name)
+            .chain_err(|| "can not format project name")?;
     }
 
     Ok(())
@@ -128,10 +130,13 @@ fn run_notes(matches: &ArgMatches, options: Options) -> Result<()> {
             continue;
         }
 
-        formatter::format_project_name(&mut handle, &project.name);
+        formatter::format_project_name(&mut handle, &project.name)
+            .chain_err(|| "can not format project name")?;
 
         for note in project.notes {
-            formatter::format_note(&mut handle, &note)
+            formatter::format_note(&mut handle, &note).chain_err(
+                || "can not format note",
+            )?
         }
     }
 

@@ -1,7 +1,7 @@
 use clap::ArgMatches;
+use errors::*;
 use log::LogLevel;
 use std::path::PathBuf;
-use store::errors::*;
 use xdg::BaseDirectories;
 
 #[derive(Debug)]
