@@ -33,6 +33,13 @@ subcommands:
       about: "list all projects with notes in labloglist all projects"
   - notes:
       about: "list notes for specified project"
+      args:
+        - filter:
+            help: "filter projects by given regex filter"
+            index: 1
+            takes_value: true
+            value_name: "regex"
+            default_value: ".*"
   - note:
       about: "add a note to lablog"
       settings:

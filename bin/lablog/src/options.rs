@@ -1,4 +1,5 @@
 use clap::ArgMatches;
+use log::LogLevel;
 use std::path::PathBuf;
 use store::errors::*;
 use xdg::BaseDirectories;
@@ -6,6 +7,7 @@ use xdg::BaseDirectories;
 #[derive(Debug)]
 pub struct Options {
     pub datadir: PathBuf,
+    pub loglevel: LogLevel,
 }
 
 impl Options {
@@ -27,7 +29,14 @@ impl Options {
             }
         };
 
-        let options = Options { datadir: datadir };
+        let loglevel: LogLevel = value_t!(matches, "loglevel", LogLevel).chain_err(
+            || "can not parse loglevel from args",
+        )?;
+
+        let options = Options {
+            datadir: datadir,
+            loglevel: loglevel,
+        };
         Ok(options)
     }
 }

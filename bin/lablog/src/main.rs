@@ -15,14 +15,16 @@ extern crate lablog_store_csv as store_csv;
 
 extern crate tempdir;
 
+extern crate regex;
+
 mod helper;
 mod options;
 mod formatter;
 
 use clap::App;
 use clap::ArgMatches;
-use log::LogLevel;
 use options::Options;
+use regex::Regex;
 use std::io;
 use store::ProjectName;
 use store::Store;
@@ -48,20 +50,15 @@ fn run() -> Result<()> {
     let yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(yaml).version(crate_version!()).get_matches();
 
-    // setup loglevel
-    {
-        let loglevel: LogLevel = value_t!(matches, "loglevel", LogLevel).chain_err(
-            || "can not parse loglevel from args",
-        )?;
-        loggerv::init_with_level(loglevel).chain_err(
-            || "can not initialize logger with parsed loglevel",
-        )?;
-    }
-    trace!("matches: {:#?}", matches);
-
     let options = Options::try_from(&matches).chain_err(
         || "can not get options from matches",
     )?;
+
+    loggerv::init_with_level(options.loglevel).chain_err(
+        || "can not initialize logger with parsed loglevel",
+    )?;
+
+    trace!("matches: {:#?}", matches);
     trace!("options: {:#?}", options);
 
     match matches.subcommand_name() {
@@ -103,12 +100,25 @@ fn run_projects(options: Options) -> Result<()> {
     Ok(())
 }
 
-fn run_notes(_matches: &ArgMatches, options: Options) -> Result<()> {
+fn run_notes(matches: &ArgMatches, options: Options) -> Result<()> {
     let store = CSVStore::new(options.datadir);
 
     let projects = store.get_projects().chain_err(
         || "can not get projects from store",
     )?;
+
+    let filter = matches.value_of("filter").chain_err(
+        || "can not get regex filter for notes filtering",
+    )?;
+
+    let regex = Regex::new(filter).chain_err(
+        || "can not create regex out of filter argument",
+    )?;
+
+    let projects: store::Projects = projects
+        .into_iter()
+        .filter(|project| regex.is_match((&project.name).into()))
+        .collect();
 
     let stdout = io::stdout();
     let mut handle = stdout.lock();

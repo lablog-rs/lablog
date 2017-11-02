@@ -71,6 +71,12 @@ impl std::fmt::Display for ProjectName {
     }
 }
 
+impl<'a> std::convert::Into<&'a str> for &'a ProjectName {
+    fn into(self) -> &'a str {
+        (self.0).as_str()
+    }
+}
+
 pub const PROJECT_SEPPERATOR: &'static str = ".";
 
 impl ProjectName {
