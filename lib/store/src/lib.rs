@@ -77,7 +77,7 @@ impl<'a> std::convert::Into<&'a str> for &'a ProjectName {
     }
 }
 
-pub const PROJECT_SEPPERATOR: &'static str = ".";
+pub const PROJECT_SEPPERATOR: &str = ".";
 
 impl ProjectName {
     /// generates a unix path out of the project name

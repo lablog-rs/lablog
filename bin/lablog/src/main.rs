@@ -94,7 +94,7 @@ fn run_projects(options: Options) -> Result<()> {
             continue;
         }
 
-        formatter::format_project_name(&mut handle, project.name);
+        formatter::format_project_name(&mut handle, &project.name);
     }
 
     Ok(())
@@ -128,10 +128,10 @@ fn run_notes(matches: &ArgMatches, options: Options) -> Result<()> {
             continue;
         }
 
-        formatter::format_project_name(&mut handle, project.name);
+        formatter::format_project_name(&mut handle, &project.name);
 
         for note in project.notes {
-            formatter::format_note(&mut handle, note)
+            formatter::format_note(&mut handle, &note)
         }
     }
 
@@ -155,8 +155,7 @@ fn run_note(matches: &ArgMatches, options: Options) -> Result<()> {
                 || "problem while running editor subcommand",
             )
         }
-        Some("file") => bail!("unimplemented"),
-        Some("text") => bail!("unimplemented"),
+        Some("file") | Some("text") => bail!("unimplemented"),
         _ => unreachable!(),
     }
 }

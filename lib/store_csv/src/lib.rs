@@ -16,7 +16,7 @@ use std::path::PathBuf;
 use store::*;
 use walkdir::WalkDir;
 
-const FILE_EXTENTION: &'static str = "csv";
+const FILE_EXTENTION: &str = "csv";
 
 pub struct CSVStore {
     pub data_dir: PathBuf,
