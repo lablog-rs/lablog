@@ -17,15 +17,13 @@ args:
         value_name: "level"
     - source_dir:
         help: "Source dir to convert from"
-        long: "source_dir"
+        index: 1
         required: true
-        short: "S"
         takes_value: true
-        value_name: "path"
+        value_name: "source_dir"
     - destination_dir:
         help: "Destination dir to convert to"
-        long: "destination_dir"
+        index: 2
         required: true
-        short: "D"
         takes_value: true
-        value_name: "path"
+        value_name: "destination_dir"

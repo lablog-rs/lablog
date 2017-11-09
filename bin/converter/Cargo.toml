@@ -4,6 +4,7 @@ name = "converter"
 version = "0.1.0"
 
 [dependencies]
+chrono = "0.4.0"
 error-chain = "0.11.0"
 log = "0.3.8"
 loggerv = "0.4.0"
@@ -11,3 +12,12 @@ loggerv = "0.4.0"
 [dependencies.clap]
 features = ["yaml"]
 version = "2.27.1"
+
+[dependencies.lablog_lib_v2]
+path = "../../lib/lablog_lib_v2"
+
+[dependencies.lablog_store]
+path = "../../lib/store"
+
+[dependencies.lablog_store_csv]
+path = "../../lib/store_csv"

@@ -2,6 +2,7 @@
 members = [
   "lib/store",
   "lib/store_csv",
+  "lib/lablog_lib_v2",
   "bin/lablog",
   "bin/converter",
 ]

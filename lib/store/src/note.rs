@@ -7,6 +7,15 @@ pub struct Note {
     pub value: String,
 }
 
+impl Default for Note {
+    fn default() -> Note {
+        Note {
+            time_stamp: Utc::now(),
+            value: String::new(),
+        }
+    }
+}
+
 impl From<String> for Note {
     fn from(input: String) -> Self {
         Note {

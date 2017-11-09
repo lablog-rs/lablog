@@ -37,7 +37,9 @@ pub struct CSVStore {
 impl CSVStore {
     #[allow(dead_code)]
     pub fn new(data_dir: PathBuf) -> CSVStore {
-        CSVStore { data_dir: data_dir }
+        CSVStore {
+            data_dir: data_dir,
+        }
     }
 
     fn project_path(&self, name: &ProjectName) -> PathBuf {
@@ -63,7 +65,7 @@ impl CSVStore {
         path
     }
 
-    fn project_name_from_path(&self, path: PathBuf) -> Result<ProjectName, errors::Error> {
+    fn project_name_from_path(&self, path: &PathBuf) -> Result<ProjectName, errors::Error> {
         let path = path.strip_prefix(&self.data_dir)
             .expect("path should always have the data_dir as an prefix")
             .with_extension("");
@@ -92,31 +94,27 @@ impl store::store::Store for CSVStore {
                     .open(newpath)
                     .chain_err(|| "can not open archive file for appending")?;
 
-                let mut oldfile = File::open(&oldpath).chain_err(
-                    || "can not open original file for reading",
-                )?;
+                let mut oldfile = File::open(&oldpath).chain_err(|| "can not open original file for reading")?;
 
                 let mut buffer = Vec::new();
-                oldfile.read_to_end(&mut buffer).chain_err(
-                    || "can not read original files content",
-                )?;
+                oldfile
+                    .read_to_end(&mut buffer)
+                    .chain_err(|| "can not read original files content")?;
 
-                newfile.write_all(&buffer).chain_err(
-                    || "can not append original content to new file",
-                )?;
+                newfile
+                    .write_all(&buffer)
+                    .chain_err(|| "can not append original content to new file")?;
             }
 
-            fs::remove_file(oldpath).chain_err(
-                || "can not remove original file",
-            )?;
+            fs::remove_file(oldpath).chain_err(|| "can not remove original file")?;
         } else {
-            fs::create_dir_all(newpath.parent().expect(
-                "archive path is root path? this seems very wrong",
-            )).chain_err(|| "can not create directory for archive")?;
+            fs::create_dir_all(
+                newpath
+                    .parent()
+                    .expect("archive path is root path? this seems very wrong"),
+            ).chain_err(|| "can not create directory for archive")?;
 
-            fs::rename(oldpath, newpath).chain_err(
-                || "can not move project file to archive path",
-            )?;
+            fs::rename(oldpath, newpath).chain_err(|| "can not move project file to archive path")?;
         }
 
         Ok(())
@@ -150,15 +148,13 @@ impl store::store::Store for CSVStore {
     }
 
     fn get_projects(&self) -> Result<Projects, errors::Error> {
-        let list = self.get_projects_list().chain_err(
-            || "can not get projects list",
-        )?;
+        let list = self.get_projects_list()
+            .chain_err(|| "can not get projects list")?;
 
         let mut projects = Projects::new();
         for item in list {
-            let project = self.get_project(item, false).chain_err(
-                || "can not get project",
-            )?;
+            let project = self.get_project(item, false)
+                .chain_err(|| "can not get project")?;
             projects.insert(project);
         }
 
@@ -177,9 +173,8 @@ impl store::store::Store for CSVStore {
                 continue;
             }
 
-            let name = self.project_name_from_path(path.to_path_buf()).chain_err(
-                || "can not get project name from entry path",
-            )?;
+            let name = self.project_name_from_path(&path.to_path_buf())
+                .chain_err(|| "can not get project name from entry path")?;
 
             list.insert(name);
         }
@@ -196,9 +191,11 @@ impl store::store::Store for CSVStore {
             let filepath = self.project_path(name);
             trace!("write_note: filepath: {:#?}", filepath);
 
-            fs::create_dir_all(filepath.parent().expect(
-                "filepath is root path? this seems very wrong",
-            )).chain_err(|| "can not create directory for file")?;
+            fs::create_dir_all(
+                filepath
+                    .parent()
+                    .expect("filepath is root path? this seems very wrong"),
+            ).chain_err(|| "can not create directory for file")?;
 
             OpenOptions::new()
                 .append(true)
@@ -211,9 +208,8 @@ impl store::store::Store for CSVStore {
 
         // we dont want to have headers in our files so we use the tuple pattern to
         // avoid that
-        wtr.serialize((&note.time_stamp, &note.value)).chain_err(
-            || "can not serialize note to csv",
-        )?;
+        wtr.serialize((&note.time_stamp, &note.value))
+            .chain_err(|| "can not serialize note to csv")?;
 
         wtr.flush().chain_err(|| "can not flush csv writer")?;
 

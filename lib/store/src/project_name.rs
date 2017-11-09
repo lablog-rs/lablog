@@ -4,7 +4,7 @@ use std::fmt::Formatter;
 use std::fmt::Result as FResult;
 use std::str::FromStr;
 
-#[derive(Debug, Ord, PartialOrd, Eq, PartialEq, Clone)]
+#[derive(Debug, Ord, PartialOrd, Eq, PartialEq, Clone, Default)]
 pub struct ProjectName(String);
 
 impl Display for ProjectName {

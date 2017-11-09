@@ -1,0 +1,13 @@
+[package]
+name = "lablog_lib_v2"
+version = "0.2.0"
+authors = ["Alexander Thaller <alexander@thaller.ws>"]
+
+[dependencies]
+chrono = { version = "0.2.25", features = ["rustc-serialize"] }
+csv = "0.15.0"
+githelper = "0.3.0"
+log = "0.3.6"
+regex = "0.1.80"
+rustc-serialize = "0.3.22"
+walkdir = "1.0.7"

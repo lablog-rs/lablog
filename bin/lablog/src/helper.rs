@@ -12,25 +12,21 @@ pub fn string_from_editor(prepoluate: Option<&str>) -> Result<String> {
     let editor = {
         match env::var("VISUAL") {
             Ok(editor) => editor,
-            Err(_) => {
-                match env::var("EDITOR") {
-                    Ok(editor) => editor,
-                    Err(_) => {
-                        bail!("not editor set. either set $VISUAL OR $EDITOR environment variable")
-                    }
+            Err(_) => match env::var("EDITOR") {
+                Ok(editor) => editor,
+                Err(_) => {
+                    bail!("not editor set. either set $VISUAL OR $EDITOR environment variable")
                 }
-            }
+            },
         }
     };
 
     if let Some(content) = prepoluate {
-        let mut file = File::create(tmppath.display().to_string()).chain_err(
-            || "can not open tmp editor file to prepoluate with string",
-        )?;
+        let mut file = File::create(tmppath.display().to_string())
+            .chain_err(|| "can not open tmp editor file to prepoluate with string")?;
 
-        file.write_all(content.as_bytes()).chain_err(
-            || "can not prepoluate editor tmp file",
-        )?;
+        file.write_all(content.as_bytes())
+            .chain_err(|| "can not prepoluate editor tmp file")?;
     }
 
     let mut editor_command = Command::new(editor);
@@ -43,13 +39,10 @@ pub fn string_from_editor(prepoluate: Option<&str>) -> Result<String> {
         .chain_err(|| "problem while running editor")?;
 
     let mut string = String::new();
-    let mut file = File::open(tmppath).chain_err(
-        || "can not open tmppath for reading",
-    )?;
+    let mut file = File::open(tmppath).chain_err(|| "can not open tmppath for reading")?;
 
-    file.read_to_string(&mut string).chain_err(
-        || "can not read tmpfile to string",
-    )?;
+    file.read_to_string(&mut string)
+        .chain_err(|| "can not read tmpfile to string")?;
 
     Ok(string)
 }

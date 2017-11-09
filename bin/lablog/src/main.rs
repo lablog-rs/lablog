@@ -28,13 +28,11 @@ mod formatter;
 mod helper;
 mod options;
 
-#[cfg(test)]
-mod formatter_test;
-
 use clap::App;
 use clap::ArgMatches;
 use errors::*;
-use formatter::*;
+use formatter::Formatter;
+use formatter::asciidoc::FormatterAsciidoc;
 use options::Options;
 use regex::Regex;
 use std::io;
@@ -63,13 +61,10 @@ fn run() -> Result<()> {
     let yaml = load_yaml!("cli.yml");
     let matches = App::from_yaml(yaml).version(crate_version!()).get_matches();
 
-    let options = Options::try_from(&matches).chain_err(
-        || "can not get options from matches",
-    )?;
+    let options = Options::try_from(&matches).chain_err(|| "can not get options from matches")?;
 
-    loggerv::init_with_level(options.loglevel).chain_err(
-        || "can not initialize logger with parsed loglevel",
-    )?;
+    loggerv::init_with_level(options.loglevel)
+        .chain_err(|| "can not initialize logger with parsed loglevel")?;
 
     trace!("matches: {:#?}", matches);
     trace!("options: {:#?}", options);
@@ -78,14 +73,10 @@ fn run() -> Result<()> {
         Some("projects") => {
             run_projects(options).chain_err(|| "problem while running projects subcommand")
         }
-        Some("notes") => {
-            run_notes(matches.subcommand_matches("notes").unwrap(), options)
-                .chain_err(|| "problem while running notes subcommand")
-        }
-        Some("note") => {
-            run_note(matches.subcommand_matches("note").unwrap(), options)
-                .chain_err(|| "problem while running note subcommand")
-        }
+        Some("notes") => run_notes(matches.subcommand_matches("notes").unwrap(), options)
+            .chain_err(|| "problem while running notes subcommand"),
+        Some("note") => run_note(matches.subcommand_matches("note").unwrap(), options)
+            .chain_err(|| "problem while running note subcommand"),
         _ => unreachable!(),
     }
 }
@@ -93,9 +84,9 @@ fn run() -> Result<()> {
 fn run_projects(options: Options) -> Result<()> {
     let store = CSVStore::new(options.datadir);
 
-    let projects = store.get_projects().chain_err(
-        || "can not get projects from store",
-    )?;
+    let projects = store
+        .get_projects()
+        .chain_err(|| "can not get projects from store")?;
 
     trace!("projects: {:#?}", projects);
 
@@ -107,8 +98,7 @@ fn run_projects(options: Options) -> Result<()> {
             continue;
         }
 
-        writeln!(handle, "{}", format_project_name(&project.name))
-            .chain_err(|| "can not format project name")?;
+        writeln!(handle, "{}", project.name).chain_err(|| "can not write project name")?;
     }
 
     Ok(())
@@ -117,17 +107,15 @@ fn run_projects(options: Options) -> Result<()> {
 fn run_notes(matches: &ArgMatches, options: Options) -> Result<()> {
     let store = CSVStore::new(options.datadir);
 
-    let projects = store.get_projects().chain_err(
-        || "can not get projects from store",
-    )?;
+    let projects = store
+        .get_projects()
+        .chain_err(|| "can not get projects from store")?;
 
-    let filter = matches.value_of("filter").chain_err(
-        || "can not get regex filter for notes filtering",
-    )?;
+    let filter = matches
+        .value_of("filter")
+        .chain_err(|| "can not get regex filter for notes filtering")?;
 
-    let regex = Regex::new(filter).chain_err(
-        || "can not create regex out of filter argument",
-    )?;
+    let regex = Regex::new(filter).chain_err(|| "can not create regex out of filter argument")?;
 
     let projects: Projects = projects
         .into_iter()
@@ -136,21 +124,10 @@ fn run_notes(matches: &ArgMatches, options: Options) -> Result<()> {
 
     let stdout = io::stdout();
     let mut handle = stdout.lock();
+    let formatter = FormatterAsciidoc::default();
 
-    for project in projects {
-        if project.archived {
-            continue;
-        }
-
-        writeln!(handle, "{}", format_project_name(&project.name))
-            .chain_err(|| "can not format project name")?;
-
-        for note in project.notes {
-            writeln!(handle, "{}", format_note(&note)).chain_err(
-                || "can not format note",
-            )?
-        }
-    }
+    writeln!(handle, "{}", formatter.projects(&projects))
+        .chain_err(|| "can not format project name")?;
 
     Ok(())
 }
@@ -164,14 +141,12 @@ fn run_note(matches: &ArgMatches, options: Options) -> Result<()> {
             let submatches = matches.subcommand_matches("editor").unwrap();
             trace!("editor submatches: {:#?}", submatches);
 
-            let project_name = value_t!(submatches, "project", ProjectName).chain_err(
-                || "can not get project name to write note to",
-            )?;
+            let project_name = value_t!(submatches, "project", ProjectName)
+                .chain_err(|| "can not get project name to write note to")?;
             trace!("project_name: {:#?}", project_name);
 
-            run_note_editor(options, &project_name).chain_err(
-                || "problem while running editor subcommand",
-            )
+            run_note_editor(options, &project_name)
+                .chain_err(|| "problem while running editor subcommand")
         }
         Some("file") | Some("text") => bail!("unimplemented"),
         _ => unreachable!(),
@@ -181,11 +156,10 @@ fn run_note(matches: &ArgMatches, options: Options) -> Result<()> {
 fn run_note_editor(options: Options, project_name: &ProjectName) -> Result<()> {
     let store = CSVStore::new(options.datadir);
 
-    let note = helper::string_from_editor(None).chain_err(
-        || "can not get note from running the editor",
-    )?;
+    let note =
+        helper::string_from_editor(None).chain_err(|| "can not get note from running the editor")?;
 
-    store.write_note(project_name, &note.into()).chain_err(
-        || "can not write note into store",
-    )
+    store
+        .write_note(project_name, &note.into())
+        .chain_err(|| "can not write note into store")
 }
