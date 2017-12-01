@@ -121,7 +121,7 @@ fn project_name_from_path() {
         let path = teststore.project_path(&expected);
 
         let got = teststore
-            .project_name_from_path(path)
+            .project_name_from_path(&path)
             .expect("can not get project name from path");
 
         assert_eq!(expected, got);
@@ -132,7 +132,7 @@ fn project_name_from_path() {
         let path = teststore.project_path(&expected);
 
         let got = teststore
-            .project_name_from_path(path)
+            .project_name_from_path(&path)
             .expect("can not get project name from path");
 
         assert_eq!(expected, got);
@@ -143,7 +143,7 @@ fn project_name_from_path() {
         let path = teststore.project_path(&expected);
 
         let got = teststore
-            .project_name_from_path(path)
+            .project_name_from_path(&path)
             .expect("can not get project name from path");
 
         assert_eq!(expected, got);
