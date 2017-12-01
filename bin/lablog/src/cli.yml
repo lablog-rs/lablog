@@ -40,6 +40,22 @@ subcommands:
             takes_value: true
             value_name: "regex"
             default_value: ".*"
+  - search:
+      about: "search for string inside notes"
+      args:
+        - text:
+            help: "text to search by. can be a regex"
+            index: 1
+            takes_value: true
+            value_name: "regex"
+            default_value: ".*"
+        - project:
+            help: "filter projects to search in by given regex filter"
+            long: "filter"
+            short: "f"
+            takes_value: true
+            value_name: "regex"
+            default_value: ".*"
   - note:
       about: "add a note to lablog"
       settings:

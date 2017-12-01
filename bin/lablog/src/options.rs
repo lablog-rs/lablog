@@ -24,8 +24,7 @@ impl Options {
                 .ok_or("can not parse datadir from args")?),
         };
 
-        let loglevel: LogLevel = value_t!(matches, "loglevel", LogLevel)
-            .chain_err(|| "can not parse loglevel from args")?;
+        let loglevel: LogLevel = value_t!(matches, "loglevel", LogLevel).chain_err(|| "can not parse loglevel from args")?;
 
         let options = Options {
             datadir: datadir,

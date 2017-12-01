@@ -14,16 +14,13 @@ pub fn string_from_editor(prepoluate: Option<&str>) -> Result<String> {
             Ok(editor) => editor,
             Err(_) => match env::var("EDITOR") {
                 Ok(editor) => editor,
-                Err(_) => {
-                    bail!("not editor set. either set $VISUAL OR $EDITOR environment variable")
-                }
+                Err(_) => bail!("not editor set. either set $VISUAL OR $EDITOR environment variable"),
             },
         }
     };
 
     if let Some(content) = prepoluate {
-        let mut file = File::create(tmppath.display().to_string())
-            .chain_err(|| "can not open tmp editor file to prepoluate with string")?;
+        let mut file = File::create(tmppath.display().to_string()).chain_err(|| "can not open tmp editor file to prepoluate with string")?;
 
         file.write_all(content.as_bytes())
             .chain_err(|| "can not prepoluate editor tmp file")?;
