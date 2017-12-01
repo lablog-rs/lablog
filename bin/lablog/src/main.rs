@@ -17,8 +17,6 @@ extern crate tempdir;
 
 extern crate regex;
 
-extern crate ansi_term;
-
 #[cfg(test)]
 extern crate chrono;
 #[cfg(test)]

@@ -14,7 +14,6 @@ pub trait Formatter {
 }
 
 pub mod asciidoc {
-    use ansi_term::Style;
     use formatter::Formatter;
     use std::collections::{
         BTreeMap,
@@ -29,10 +28,7 @@ pub mod asciidoc {
 
     impl Formatter for FormatterAsciidoc {
         fn project_name(&self, project_name: &ProjectName) -> String {
-            format!(
-                "{}",
-                Style::new().bold().paint(format!("== {}", project_name))
-            )
+            format!("== {}", project_name)
         }
 
         fn note(&self, note: &Note) -> String {
