@@ -6,13 +6,16 @@ use chrono::{
     TimeZone,
     Utc,
 };
+use clap::ArgMatches;
 use errors::*;
+use regex::Regex;
 use std::env;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
 use std::process::Command;
 use store::project::Projects;
+use store::store::Store;
 use tempdir::TempDir;
 
 pub fn string_from_editor(prepoluate: Option<&str>) -> Result<String> {
@@ -121,4 +124,70 @@ pub fn filter_projects_by_timestamps(projects: Projects, filter_before: &Option<
     }
 
     out
+}
+
+pub struct Filters {
+    project_name: Option<Regex>,
+    timestamp_before: Option<DateTime<Utc>>,
+    timestamp_after: Option<DateTime<Utc>>,
+}
+
+pub fn get_filtered_projects(store: &Store, filters: &Filters) -> Result<Projects> {
+    let mut projects = store
+        .get_projects()
+        .chain_err(|| "can not get projects from store")?;
+
+    if let Some(ref filter) = filters.project_name {
+        projects = projects
+            .into_iter()
+            .filter(|project| filter.is_match((&project.name).into()))
+            .collect();
+    }
+
+    Ok(filter_projects_by_timestamps(
+        projects,
+        &filters.timestamp_before,
+        &filters.timestamp_after,
+    ))
+}
+
+pub fn get_filters_from_match(matches: &ArgMatches) -> Result<Filters> {
+    let project_name = {
+        let arg = matches.value_of("filter_project_name");
+
+        if arg.is_some() {
+            Some(Regex::new(arg.unwrap())
+                .chain_err(|| "can not create regex out of filter argument")?)
+        } else {
+            None
+        }
+    };
+
+    let timestamp_before = {
+        let arg = matches.value_of("filter_before");
+
+        if arg.is_none() {
+            None
+        } else {
+            let timestamp = try_multiple_time_parser(arg.unwrap()).chain_err(|| "can not parse before filter timestamp")?;
+            Some(timestamp)
+        }
+    };
+
+    let timestamp_after = {
+        let arg = matches.value_of("filter_after");
+
+        if arg.is_none() {
+            None
+        } else {
+            let timestamp = try_multiple_time_parser(arg.unwrap()).chain_err(|| "can not parse before filter timestamp")?;
+            Some(timestamp)
+        }
+    };
+
+    Ok(Filters {
+        project_name: project_name,
+        timestamp_before: timestamp_before,
+        timestamp_after: timestamp_after,
+    })
 }

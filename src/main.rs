@@ -39,7 +39,6 @@ use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 use std::io;
 use std::io::Write;
-use store::project::Projects;
 use store::project_name::ProjectName;
 use store::store::Store;
 use store_csv::*;
@@ -71,7 +70,9 @@ fn run() -> Result<()> {
     trace!("options: {:#?}", options);
 
     match matches.subcommand_name() {
-        Some("projects") => run_projects(options).chain_err(|| "problem while running projects subcommand"),
+        Some("projects") => {
+            run_projects(matches.subcommand_matches("projects").unwrap(), options).chain_err(|| "problem while running projects subcommand")
+        }
         Some("notes") => run_notes(matches.subcommand_matches("notes").unwrap(), options).chain_err(|| "problem while running notes subcommand"),
         Some("search") => run_search(matches.subcommand_matches("search").unwrap(), options).chain_err(|| "problem while running notes subcommand"),
         Some("note") => run_note(matches.subcommand_matches("note").unwrap(), options).chain_err(|| "problem while running note subcommand"),
@@ -79,14 +80,10 @@ fn run() -> Result<()> {
     }
 }
 
-fn run_projects(options: Options) -> Result<()> {
+fn run_projects(matches: &ArgMatches, options: Options) -> Result<()> {
     let store = CSVStore::new(options.datadir);
-
-    let projects = store
-        .get_projects()
-        .chain_err(|| "can not get projects from store")?;
-
-    trace!("projects: {:#?}", projects);
+    let filters = helper::get_filters_from_match(matches).chain_err(|| "can not get filters from matches")?;
+    let projects = helper::get_filtered_projects(&store, &filters).chain_err(|| "can not get filtered projects")?;
 
     let stdout = io::stdout();
     let mut handle = stdout.lock();
@@ -105,49 +102,8 @@ fn run_projects(options: Options) -> Result<()> {
 fn run_notes(matches: &ArgMatches, options: Options) -> Result<()> {
     let store = CSVStore::new(options.datadir);
 
-    let projects = store
-        .get_projects()
-        .chain_err(|| "can not get projects from store")?;
-
-    let filter = {
-        let arg = matches
-            .value_of("filter")
-            .chain_err(|| "can not get regex filter for notes filtering")?;
-
-        Regex::new(arg).chain_err(|| "can not create regex out of filter argument")?
-    };
-
-    let filter_before = {
-        let arg = matches.value_of("filter_before");
-
-        if arg.is_none() {
-            None
-        } else {
-            let timestamp = helper::try_multiple_time_parser(arg.unwrap()).chain_err(|| "can not parse before filter timestamp")?;
-            Some(timestamp)
-        }
-    };
-
-    let filter_after = {
-        let arg = matches.value_of("filter_after");
-
-        if arg.is_none() {
-            None
-        } else {
-            let timestamp = helper::try_multiple_time_parser(arg.unwrap()).chain_err(|| "can not parse before filter timestamp")?;
-            Some(timestamp)
-        }
-    };
-
-    trace!("main::run_notes::filter_before {:?}", filter_before);
-    trace!("main::run_notes::filter_before {:?}", filter_after);
-
-    let projects: Projects = projects
-        .into_iter()
-        .filter(|project| filter.is_match((&project.name).into()))
-        .collect();
-
-    let projects: Projects = helper::filter_projects_by_timestamps(projects, &filter_before, &filter_after);
+    let filters = helper::get_filters_from_match(matches).chain_err(|| "can not get filters from matches")?;
+    let projects = helper::get_filtered_projects(&store, &filters).chain_err(|| "can not get filtered projects")?;
 
     let stdout = io::stdout();
     let mut handle = stdout.lock();
@@ -159,50 +115,9 @@ fn run_notes(matches: &ArgMatches, options: Options) -> Result<()> {
 }
 
 fn run_search(matches: &ArgMatches, options: Options) -> Result<()> {
-    let projects: Projects = {
-        let regex = {
-            let filter = matches
-                .value_of("project")
-                .chain_err(|| "can not get project to filter by")?;
-
-            Regex::new(filter).chain_err(|| "can not create regex out of project argument")?
-        };
-
-        let store = CSVStore::new(options.datadir);
-
-        let projects = store
-            .get_projects()
-            .chain_err(|| "can not get projects from store")?;
-
-        let projects = projects
-            .into_iter()
-            .filter(|project| regex.is_match((&project.name).into()))
-            .collect();
-
-        let filter_before = {
-            let arg = matches.value_of("filter_before");
-
-            if arg.is_none() {
-                None
-            } else {
-                let timestamp = helper::try_multiple_time_parser(arg.unwrap()).chain_err(|| "can not parse before filter timestamp")?;
-                Some(timestamp)
-            }
-        };
-
-        let filter_after = {
-            let arg = matches.value_of("filter_after");
-
-            if arg.is_none() {
-                None
-            } else {
-                let timestamp = helper::try_multiple_time_parser(arg.unwrap()).chain_err(|| "can not parse before filter timestamp")?;
-                Some(timestamp)
-            }
-        };
-
-        helper::filter_projects_by_timestamps(projects, &filter_before, &filter_after)
-    };
+    let store = CSVStore::new(options.datadir);
+    let filters = helper::get_filters_from_match(matches).chain_err(|| "can not get filters from matches")?;
+    let projects = helper::get_filtered_projects(&store, &filters).chain_err(|| "can not get filtered projects")?;
 
     let regex = {
         let filter = matches

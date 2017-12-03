@@ -31,10 +31,29 @@ args:
 subcommands:
   - projects:
       about: "list all projects with notes in labloglist all projects"
+      args:
+        - filter_project_name:
+            help: "filter projects by given regex filter"
+            index: 1
+            takes_value: true
+            value_name: "regex"
+            default_value: ".*"
+        - filter_before:
+            help: "print all notes before the given timestamp"
+            takes_value: true
+            long: "before"
+            short: "B"
+            value_name: "timestamp"
+        - filter_after:
+            help: "print all notes after the given timestamp"
+            takes_value: true
+            long: "after"
+            short: "A"
+            value_name: "timestamp"
   - notes:
       about: "list notes for specified project"
       args:
-        - filter:
+        - filter_project_name:
             help: "filter projects by given regex filter"
             index: 1
             takes_value: true
@@ -61,10 +80,10 @@ subcommands:
             takes_value: true
             value_name: "regex"
             default_value: ".*"
-        - project:
+        - filter_project_name:
             help: "filter projects to search in by given regex filter"
-            long: "filter"
-            short: "f"
+            long: "project_name"
+            short: "P"
             takes_value: true
             value_name: "regex"
             default_value: ".*"
