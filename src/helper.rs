@@ -70,32 +70,35 @@ pub fn try_multiple_time_parser(input: &str) -> ParseResult<DateTime<Utc>> {
 
     input
         .parse()
-        .or(Utc.datetime_from_str(input.as_str(), "%Y-%m-%d %H:%M:%S"))
-        .or(Utc.datetime_from_str(
-            format!("{}:00", input).as_str(),
-            "%Y-%m-%d %H:%M:%S",
-        ))
-        .or(Utc.datetime_from_str(
-            format!("{}:00:00", input).as_str(),
-            "%Y-%m-%d %H:%M:%S",
-        ))
-        .or(Utc.datetime_from_str(
-            format!("{} 00:00:00", input).as_str(),
-            "%Y-%m-%d %H:%M:%S",
-        ))
-        .or(Utc.datetime_from_str(
-            format!("{}-01 00:00:00", input).as_str(),
-            "%Y-%m-%d %H:%M:%S",
-        ))
-        .or(Utc.datetime_from_str(
-            format!("{}-01-01 00:00:00", input).as_str(),
-            "%Y-%m-%d %H:%M:%S",
-        ))
+        .or_else(|_| {
+            Utc.datetime_from_str(input.as_str(), "%Y-%m-%d %H:%M:%S")
+        })
+        .or_else(|_| {
+            Utc.datetime_from_str(format!("{}:00", input).as_str(), "%Y-%m-%d %H:%M:%S")
+        })
+        .or_else(|_| {
+            Utc.datetime_from_str(format!("{}:00:00", input).as_str(), "%Y-%m-%d %H:%M:%S")
+        })
+        .or_else(|_| {
+            Utc.datetime_from_str(format!("{} 00:00:00", input).as_str(), "%Y-%m-%d %H:%M:%S")
+        })
+        .or_else(|_| {
+            Utc.datetime_from_str(
+                format!("{}-01 00:00:00", input).as_str(),
+                "%Y-%m-%d %H:%M:%S",
+            )
+        })
+        .or_else(|_| {
+            Utc.datetime_from_str(
+                format!("{}-01-01 00:00:00", input).as_str(),
+                "%Y-%m-%d %H:%M:%S",
+            )
+        })
 }
 
 pub fn filter_projects_by_timestamps(projects: Projects, filter_before: &Option<DateTime<Utc>>, filter_after: &Option<DateTime<Utc>>) -> Projects {
     let check_timestamp = |time_stamp: &DateTime<Utc>, filter: &Option<DateTime<Utc>>, after: bool| {
-        if let &Some(unwraped) = filter {
+        if let Some(unwraped) = *filter {
             if after {
                 time_stamp >= &unwraped
             } else {
@@ -118,7 +121,7 @@ pub fn filter_projects_by_timestamps(projects: Projects, filter_before: &Option<
             .filter(|note| check_timestamp(&note.time_stamp, filter_after, true))
             .collect();
 
-        if project.notes.len() != 0 {
+        if !project.notes.is_empty() {
             out.insert(project);
         }
     }
