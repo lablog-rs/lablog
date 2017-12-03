@@ -1,8 +1,34 @@
-[workspace]
-members = [
-  "lib/store",
-  "lib/store_csv",
-  "lib/lablog_lib_v2",
-  "bin/lablog",
-  "bin/converter",
-]
+[package]
+authors = ["Alexander Thaller <alexander.thaller@trivago.com>"]
+name = "lablog"
+version = "0.1.0"
+license = "MIT"
+readme = "README.md"
+description = """
+A hierarchical, unstructured note taking tool.
+"""
+documentation = "https://github.com/lablog-rs/lablog"
+homepage = "https://github.com/lablog-rs/lablog"
+repository = "https://github.com/lablog-rs/lablog"
+
+[dependencies]
+error-chain = "0.11"
+log = "0.3"
+loggerv = "0.4"
+regex = "0.2"
+tempdir = "0.3"
+xdg = "2.1"
+
+[dependencies.clap]
+features = ["yaml"]
+version = "2.27"
+
+[dependencies.lablog_store]
+git = "https://github.com/lablog-rs/lablog_store"
+
+[dependencies.lablog_store_csv]
+git = "https://github.com/lablog-rs/lablog_store_csv"
+
+[dev-dependencies]
+chrono = "0.4"
+pretty_assertions = "0.4"
