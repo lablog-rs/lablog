@@ -20,8 +20,6 @@ extern crate regex;
 extern crate chrono;
 
 #[cfg(test)]
-extern crate chrono;
-#[cfg(test)]
 #[macro_use]
 extern crate pretty_assertions;
 

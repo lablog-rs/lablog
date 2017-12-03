@@ -31,5 +31,4 @@ git = "https://github.com/lablog-rs/lablog_store"
 git = "https://github.com/lablog-rs/lablog_store_csv"
 
 [dev-dependencies]
-chrono = "0.4"
 pretty_assertions = "0.4"
