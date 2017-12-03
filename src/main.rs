@@ -174,10 +174,34 @@ fn run_search(matches: &ArgMatches, options: Options) -> Result<()> {
             .get_projects()
             .chain_err(|| "can not get projects from store")?;
 
-        projects
+        let projects = projects
             .into_iter()
             .filter(|project| regex.is_match((&project.name).into()))
-            .collect()
+            .collect();
+
+        let filter_before = {
+            let arg = matches.value_of("filter_before");
+
+            if arg.is_none() {
+                None
+            } else {
+                let timestamp = helper::try_multiple_time_parser(arg.unwrap()).chain_err(|| "can not parse before filter timestamp")?;
+                Some(timestamp)
+            }
+        };
+
+        let filter_after = {
+            let arg = matches.value_of("filter_after");
+
+            if arg.is_none() {
+                None
+            } else {
+                let timestamp = helper::try_multiple_time_parser(arg.unwrap()).chain_err(|| "can not parse before filter timestamp")?;
+                Some(timestamp)
+            }
+        };
+
+        helper::filter_projects_by_timestamps(projects, &filter_before, &filter_after)
     };
 
     let regex = {
