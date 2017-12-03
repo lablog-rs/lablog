@@ -17,6 +17,8 @@ extern crate tempdir;
 
 extern crate regex;
 
+extern crate chrono;
+
 #[cfg(test)]
 extern crate chrono;
 #[cfg(test)]
@@ -109,16 +111,45 @@ fn run_notes(matches: &ArgMatches, options: Options) -> Result<()> {
         .get_projects()
         .chain_err(|| "can not get projects from store")?;
 
-    let filter = matches
-        .value_of("filter")
-        .chain_err(|| "can not get regex filter for notes filtering")?;
+    let filter = {
+        let arg = matches
+            .value_of("filter")
+            .chain_err(|| "can not get regex filter for notes filtering")?;
 
-    let regex = Regex::new(filter).chain_err(|| "can not create regex out of filter argument")?;
+        Regex::new(arg).chain_err(|| "can not create regex out of filter argument")?
+    };
+
+    let filter_before = {
+        let arg = matches.value_of("filter_before");
+
+        if arg.is_none() {
+            None
+        } else {
+            let timestamp = helper::try_multiple_time_parser(arg.unwrap()).chain_err(|| "can not parse before filter timestamp")?;
+            Some(timestamp)
+        }
+    };
+
+    let filter_after = {
+        let arg = matches.value_of("filter_after");
+
+        if arg.is_none() {
+            None
+        } else {
+            let timestamp = helper::try_multiple_time_parser(arg.unwrap()).chain_err(|| "can not parse before filter timestamp")?;
+            Some(timestamp)
+        }
+    };
+
+    trace!("main::run_notes::filter_before {:?}", filter_before);
+    trace!("main::run_notes::filter_before {:?}", filter_after);
 
     let projects: Projects = projects
         .into_iter()
-        .filter(|project| regex.is_match((&project.name).into()))
+        .filter(|project| filter.is_match((&project.name).into()))
         .collect();
+
+    let projects: Projects = helper::filter_projects_by_timestamps(projects, &filter_before, &filter_after);
 
     let stdout = io::stdout();
     let mut handle = stdout.lock();

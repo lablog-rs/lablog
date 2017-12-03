@@ -12,6 +12,7 @@ homepage = "https://github.com/lablog-rs/lablog"
 repository = "https://github.com/lablog-rs/lablog"
 
 [dependencies]
+chrono = "0.4"
 error-chain = "0.11"
 log = "0.3"
 loggerv = "0.4"
