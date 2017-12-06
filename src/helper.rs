@@ -194,3 +194,121 @@ pub fn get_filters_from_match(matches: &ArgMatches) -> Result<Filters> {
         timestamp_after: timestamp_after,
     })
 }
+
+#[cfg(test)]
+mod test {
+    use chrono::{
+        Duration,
+        Utc,
+    };
+    use helper::try_multiple_time_parser;
+    use std::collections::BTreeSet;
+    use store::errors;
+    use store::note::Note;
+    use store::project::Project;
+    use store::project::Projects;
+    use store::project_name::ProjectName;
+    use store::store::Store;
+
+    #[derive(Default)]
+    struct TestStore {}
+
+    impl Store for TestStore {
+        fn archive_project(&self, _: &ProjectName) -> Result<(), errors::Error> {
+            unimplemented!()
+        }
+        fn get_project(&self, _: ProjectName, _: bool) -> Result<Project, errors::Error> {
+            unimplemented!()
+        }
+        fn get_projects(&self) -> Result<Projects, errors::Error> {
+            unimplemented!()
+        }
+        fn get_projects_list(&self) -> Result<BTreeSet<ProjectName>, errors::Error> {
+            unimplemented!()
+        }
+        fn write_note(&self, _: &ProjectName, _: &Note) -> Result<(), errors::Error> {
+            unimplemented!()
+        }
+    }
+
+    #[test]
+    fn test_try_multiple_time_parser_today() {
+        let input = "today";
+        let output = try_multiple_time_parser(input).unwrap();
+        let expected = Utc::now().date().and_hms(0, 0, 0).to_rfc3339();
+
+        println!("expected: {}", expected);
+
+        assert_eq!(output.to_rfc3339(), expected)
+    }
+
+    #[test]
+    fn test_try_multiple_time_parser_yesterday() {
+        let input = "yesterday";
+        let output = try_multiple_time_parser(input).unwrap();
+        let expected = Utc::now()
+            .date()
+            .and_hms(0, 0, 0)
+            .checked_sub_signed(Duration::days(1))
+            .unwrap()
+            .to_rfc3339();
+
+        println!("expected: {}", expected);
+
+        assert_eq!(output.to_rfc3339(), expected)
+    }
+
+    #[test]
+    fn test_try_multiple_time_parser_year() {
+        let input = "2001";
+        let output = try_multiple_time_parser(input).unwrap();
+        let expected = "2001-01-01T00:00:00+00:00";
+
+        assert_eq!(output.to_rfc3339(), expected)
+    }
+
+    #[test]
+    fn test_try_multiple_time_parser_year_month() {
+        let input = "2001-02";
+        let output = try_multiple_time_parser(input).unwrap();
+        let expected = "2001-02-01T00:00:00+00:00";
+
+        assert_eq!(output.to_rfc3339(), expected)
+    }
+
+    #[test]
+    fn test_try_multiple_time_parser_year_month_day() {
+        let input = "2001-02-03";
+        let output = try_multiple_time_parser(input).unwrap();
+        let expected = "2001-02-03T00:00:00+00:00";
+
+        assert_eq!(output.to_rfc3339(), expected)
+    }
+
+    #[test]
+    fn test_try_multiple_time_parser_year_month_day_hour() {
+        let input = "2001-02-03 04";
+        let output = try_multiple_time_parser(input).unwrap();
+        let expected = "2001-02-03T04:00:00+00:00";
+
+        assert_eq!(output.to_rfc3339(), expected)
+    }
+
+    #[test]
+    fn test_try_multiple_time_parser_year_month_day_hour_minute() {
+        let input = "2001-02-03 04:05";
+        let output = try_multiple_time_parser(input).unwrap();
+        let expected = "2001-02-03T04:05:00+00:00";
+
+        assert_eq!(output.to_rfc3339(), expected)
+    }
+
+    #[test]
+    fn test_try_multiple_time_parser_year_month_day_hour_minute_seconds() {
+        let input = "2001-02-03 04:05:06";
+        let output = try_multiple_time_parser(input).unwrap();
+        let expected = "2001-02-03T04:05:06+00:00";
+
+        assert_eq!(output.to_rfc3339(), expected)
+    }
+}
