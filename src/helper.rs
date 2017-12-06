@@ -1,10 +1,11 @@
 use chrono::{
     DateTime,
+    Datelike,
     Duration,
-    Local,
     ParseResult,
     TimeZone,
     Utc,
+    Weekday,
 };
 use clap::ArgMatches;
 use errors::*;
@@ -56,12 +57,35 @@ pub fn string_from_editor(prepoluate: Option<&str>) -> Result<String> {
     Ok(string)
 }
 
+// TODO: Split this out into its own crate. Maybe make it like https://github.com/jinzhu/now and
+// make this better testable or split it out into functions for a wrapper for
+// datetime.
 pub fn try_multiple_time_parser(input: &str) -> ParseResult<DateTime<Utc>> {
     let input = match input {
-        "today" => format!("{}", Local::now().format("%Y-%m-%d")),
+        "today" => format!("{}", Utc::now().format("%Y-%m-%d")),
         "yesterday" => {
-            let yesterday = Local::now() - Duration::days(1);
+            let yesterday = Utc::now() - Duration::days(1);
             format!("{}", yesterday.format("%Y-%m-%d"))
+        }
+        "beginning of week" => {
+            let mut beginning_of_week = Utc::now();
+            while beginning_of_week.weekday() != Weekday::Mon {
+                beginning_of_week = beginning_of_week - Duration::days(1)
+            }
+
+            println!("beginning_of_week: {:?}", beginning_of_week);
+
+            format!("{}", beginning_of_week.format("%Y-%m-%d"))
+        }
+        "end of week" => {
+            let mut end_of_week = Utc::now();
+            while end_of_week.weekday() != Weekday::Sun {
+                end_of_week = end_of_week + Duration::days(1)
+            }
+
+            println!("end_of_week: {:?}", end_of_week);
+
+            format!("{}", end_of_week.format("%Y-%m-%d"))
         }
         _ => String::from(input),
     };
